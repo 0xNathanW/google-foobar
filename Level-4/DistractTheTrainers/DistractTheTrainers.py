@@ -50,10 +50,22 @@ def graph(nums):
     fig, ax = plt.subplots()
     for i in range(1, nums):
         for j in range(2, nums):
-            if is_finite(i, j):
+            if is_loop(i, j):
                 ax.scatter(i, j, c='r', marker=".")
     plt.grid()
     plt.show()
+
+
+def print_trainers(trainers):
+    print("\nNode\tAdjacent Nodes")
+    print("="*20)
+    for i in trainers:
+        print(i, "\t", trainers[i])
+    print("\n")
+
+
+
+#########################################################################
 
 # Greatest common divisor.
 def gcd(a, b):
@@ -72,30 +84,62 @@ def pair(a, b):
     i = 0
     while c <= b:
         if c == b:
-            return True
+            return False
         i += 1
         c += 2**i
-    return False
+    return True
 
-def is_finite(i, j):
+def is_loop(i, j):
     # Get coprime numbers.
     i, j = get_goprimes(i, j)
     if i%2 == 0 or j%2 == 0:
-        return False
+        return True
     return pair(i, j) if i < j else pair(j, i)
 
-def solution(l):
-    for pairing in itertools.permutations(l, 2):
-        print(pairing)
+def search():
     pass
+    
 
+def solution(l):
+    trainers = {}
+    for i, j in itertools.combinations(l, 2):
+        if is_loop(i, j):
+            if i not in trainers:
+                trainers[i] = {
+                    "loops": [],
+                    "counted": False
+                }
+            if j not in trainers:
+                trainers[j] = {
+                    "loops": [],
+                    "counted": False
+                }
+            trainers[i]["loops"].append(j)
+            trainers[j]["loops"].append(i)
+    l.sort(key=lambda x: len(trainers[x]["loops"]))
+    print(l)
+    left = len(l)
+    isolated = 0
+    while left > 0:
+        for i in l:
+            print(f"checking {i}\n")
+            if trainers[i]["counted"]:
+                continue
+            for j in l:
+                if trainers[j]["counted"]:
+                    continue
+                if j in trainers[i]["loops"]:
+                    trainers[i]["counted"] = True
+                    trainers[j]["counted"] = True
+                    left -= 2
+                    break
+            if not trainers[i]["counted"]:
+                trainers[i]["counted"] = True
+                isolated += 1
+                left -= 1
+            print_trainers(trainers)
+    print("Isolated: ", isolated)
+    return isolated
 
-
-class Tests(unittest.TestCase):
-
-    def test_rough(self):
-        for x in range(1, 500):
-            for y in range(1, 500):
-                self.assertEqual(test_is_finite(x, y), is_finite(x, y))
-
-unittest.main()
+    
+solution([1, 3, 21, 19, 21])
