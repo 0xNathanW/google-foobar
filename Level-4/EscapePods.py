@@ -26,7 +26,7 @@ def single_alt(enter, out, path):
 
 from collections import deque
 
-# bfs search, returns true if
+# bfs search, returns true if there is a path
 def search(graph, s, t, parent):
     visited = set()
     q = deque()
