@@ -4,47 +4,63 @@ def graph_print(path):
     for i in path:
         print(i)
 
+def single_alt(enter, out, path):
+    n = len(path)
+    new_length = n + 2
+    new_path = []
+    for i in range(new_length):
+        new_path.append([0] * new_length)
+    for i in range(n):
+        for j in range(n):
+            new_path[i+1][j+1] = path[i][j]
+    for i in enter:
+        new_path[0][i+1] = float("Inf")
+    for i in out:
+        new_path[i+1][new_length-1] = float("Inf")
+    graph_print(new_path)
+    return 0, new_length - 1, new_path
+
+
+
+#-------------------------------- Actual answer ----------------------------------#
+
+from collections import deque
+
+# bfs search, returns true if
 def search(graph, s, t, parent):
-    visited = [False] * len(graph)
-    q = [s]
-    visited[s] = True
-    while q:
-        j = q.pop(0)
+    visited = set()
+    q = deque()
+    q.append(s)
+    visited.add(s)
+    while len(q) > 0:
+        j = q.popleft()
+        if j == t:
+            return True
         for idx, v in enumerate(graph[j]):
-            if not visited[idx] and v > 0:
+            if idx not in visited and v > 0:
                 q.append(idx)
-                visited[idx] = True
+                visited.add(idx)
                 parent[idx] = j
-                if idx == t:
-                    return True
     return False
+
+def single_source_sink(enter, out, path):
+    max_flow = float("Inf")
+    # new singular source and sink.
+    for i in path:
+        i.insert(0, 0)
+    path.insert(0, [0] * (len(path) + 1))
+    for i in enter:
+        path[0][i+1] = max_flow
+    for i in path:
+        i.append(0)
+    path.append([0] * (len(path) + 1))
+    for i in out:
+        path[i+1][len(path)-1] = max_flow
+    return 0, len(path) - 1, path
 
 # solution implements ford-fulkerson algorithm for max-flow.
 def solution(enter, out, path):
-
-    
-    if len(enter) == 0 or len(out) == 0:    return 0
-    max_in = float("Inf")
-    if len(enter) == 1:  enter = enter[0]
-    else:
-        for i in path:
-                i.insert(0, 0) 
-        path.insert(0, [0] * (len(path) + 1)) 
-        for i in enter:
-            path[0][i+1] = max_in
-        enter = 0
-    if len(out) == 1:  out = out[0]
-    else:
-        if len(out) > 1: # dummy sink if multiple exits.
-            for i in path:
-                i.append(0)
-            path.append([0] * (len(path) + 1))
-            for i in out:
-                path[i+1][len(path)-1] = max_in
-            out = len(path) - 1
-    graph_print(path)
-
-
+    enter, out, path = single_source_sink(enter, out, path)
     parent = [-1] * len(path) # stores path.
     throughput = 0
     while search(path, enter, out, parent): # while path from enter to out exists.
@@ -63,7 +79,6 @@ def solution(enter, out, path):
     return throughput
 
 # between rooms can lead to each other.
-
 class TestSolution(unittest.TestCase):
 
     def test_solution(self):
@@ -92,3 +107,5 @@ class TestSolution(unittest.TestCase):
         ), 16)
 
 unittest.main()
+
+            
